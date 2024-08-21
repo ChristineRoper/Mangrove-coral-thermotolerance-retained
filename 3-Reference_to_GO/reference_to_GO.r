@@ -54,3 +54,13 @@ gene_to_transcript <- read_tsv(
 left_join(gene_to_transcript, transcript_to_go, by = "transcript_id") %>%
     select(gene_id, transcript_id, GOs, Description, Preferred_name) %>%
     write_tsv("3-Reference_to_GO/out/gene_to_go.tsv")
+
+##
+# Do it again in the format that TopGO likes
+#####
+
+left_join(gene_to_transcript, transcript_to_go, by = "transcript_id") %>%
+    filter(!is.na(GOs))%>%
+    filter(GOs != '-')%>%
+    select(gene_id, GOs) %>%
+    write_tsv("3-Reference_to_GO/out/gene_to_TopGO.tsv", col_names = FALSE)

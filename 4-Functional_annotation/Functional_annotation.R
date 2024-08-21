@@ -11,7 +11,7 @@ library(readr)
 
 ############### GO enrichment using topGO ###################
 
-geneID2GO <- readMappings(file = "3-Reference_to_GO/out/gene_to_go.tsv")
+geneID2GO <- readMappings(file = "3-Reference_to_GO/out/gene_to_TopGO.tsv")
 # all possible gene names with GO annotation
 geneUniverse <- names(geneID2GO)
 message("Number of genes with GO annotation: ", length(geneUniverse))
