@@ -1,0 +1,6 @@
+.DS_Store
+**/out
+**/plots
+1-Process-HTSeq/HTSeq_data
+reference genome
+5-Goslim/goslim_generic.obo
