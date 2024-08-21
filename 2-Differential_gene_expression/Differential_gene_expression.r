@@ -16,7 +16,8 @@ source("2-Differential_gene_expression/dds_data.r")
 dds <- DESeq(dds)
 
 
-############### LRT things ###################
+############### Likelihood ratio test ###################
+## Use this to compare factors with 3 or more levels ##
 output <- NULL
 
 # By Temperature
@@ -88,14 +89,100 @@ write.csv(output, "2-Differential_gene_expression/out/Summary.csv")
 
 ############### Differential pairwise comparisons ###################
 
-design(dds) <- ~TempGroup
-dds <- DESeq(dds)
-resultsNames(dds)
-
 groups <- levels(metadata$Group)
 temperatures <- levels(metadata$Temperature)
 
 output <- NULL
+
+# Compare Groups
+# Added 2024-08-21
+
+design(dds) <- ~Group
+dds <- DESeq(dds)
+resultsNames(dds)
+
+for (i in 1:(length(groups) - 1)) {
+  for (j in (i + 1):length(groups)) {
+    g1 <- groups[i]
+    g2 <- groups[j]
+    cat(g1, "vs", g2, "\n")
+
+    res <- results(dds, contrast = c("Group", g1, g2))
+
+    threshold <- 0
+    alpha <- 0.05
+    output <- rbind(output, data.frame(
+      a = g1,
+      b = g2,
+      notallzero = sum(res$baseMean > 0),
+      up = sum(res$padj < alpha & res$log2FoldChange > threshold, na.rm = TRUE),
+      down = sum(res$padj < alpha & res$log2FoldChange < threshold, na.rm = TRUE),
+      filt = sum(!is.na(res$pvalue) & is.na(res$padj)),
+      outlier = sum(res$baseMean > 0 & is.na(res$pvalue))
+    ))
+
+    res %>%
+      as.data.frame() %>%
+      filter(padj < 0.05) %>%
+      write.table(
+        paste0("2-Differential_gene_expression/out/pairwise/by-group/", g1, "_vs_", g2, "_p0.05.txt"),
+        sep = "\t",
+        quote = FALSE,
+        row.names = TRUE
+      )
+
+    summary(res, alpha = 0.05)
+  }
+}
+
+# Compare Groups
+# Added 2024-08-21
+
+design(dds) <- ~Temperature
+dds <- DESeq(dds)
+resultsNames(dds)
+
+for (i in 1:(length(temperatures) - 1)) {
+  for (j in (i + 1):length(temperatures)) {
+    t2 <- temperatures[i]
+    t1 <- temperatures[j]
+    cat(t1, "vs", t2, "\n")
+    res <- results(dds, contrast = c("Temperature", t1, t2))
+
+    threshold <- 0
+    alpha <- 0.05
+    output <- rbind(output, data.frame(
+      a = t1,
+      b = t2,
+      notallzero = sum(res$baseMean > 0),
+      up = sum(res$padj < alpha & res$log2FoldChange > threshold, na.rm = TRUE),
+      down = sum(res$padj < alpha & res$log2FoldChange < threshold, na.rm = TRUE),
+      filt = sum(!is.na(res$pvalue) & is.na(res$padj)),
+      outlier = sum(res$baseMean > 0 & is.na(res$pvalue))
+    ))
+
+    res %>%
+      as.data.frame() %>%
+      filter(padj < 0.05) %>%
+      write.table(
+        paste0("2-Differential_gene_expression/out/pairwise/by-temperature/", t1, "_vs_", t2, "_p0.05.txt"),
+        sep = "\t",
+        quote = FALSE,
+        row.names = TRUE
+      )
+
+    summary(res, alpha = 0.05)
+  }
+}
+
+write.csv(output, "2-Differential_gene_expression/out/Summary_pairwise2.csv")
+
+# Compare between temperatures within each group
+
+design(dds) <- ~TempGroup
+dds <- DESeq(dds)
+resultsNames(dds)
+
 for (group in groups) {
   cat("\033[1m", group, "\033[0m\n\n", sep = "")
   for (i in 1:(length(temperatures) - 1)) {
@@ -142,6 +229,8 @@ for (group in groups) {
     }
   }
 }
+
+# Compare between groups within each temperature
 
 for (temperature in temperatures) {
   cat("\033[1m", temperature, "\033[0m\n\n", sep = "")
