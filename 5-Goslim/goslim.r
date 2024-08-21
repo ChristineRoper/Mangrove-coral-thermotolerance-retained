@@ -48,7 +48,17 @@ files <- c(
     "mangrove_reef_30_vs_36_p0.05.txt",
     "reef_reef_30_vs_36_p0.05.txt",
     "wild_mangrove_30_vs_36_p0.05.txt",
-    "wild_reef_30_vs_36_p0.05.txt"
+    "wild_reef_30_vs_36_p0.05.txt",
+    # Added 2024-08-21
+    "by-group/wild_mangrove_vs_wild_reef_p0.05.txt",
+    "by-group/reef_reef_vs_wild_reef_p0.05.txt",
+    "by-group/reef_reef_vs_wild_mangrove_p0.05.txt",
+    "by-group/mangrove_reef_vs_wild_reef_p0.05.txt",
+    "by-group/mangrove_reef_vs_wild_mangrove_p0.05.txt",
+    "by-group/mangrove_reef_vs_reef_reef_p0.05.txt",
+    "by-temperature/36_vs_33_p0.05.txt",
+    "by-temperature/36_vs_30_p0.05.txt",
+    "by-temperature/33_vs_30_p0.05.txt"
 )
 
 for (direction in c("up", "down")) {

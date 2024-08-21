@@ -17,6 +17,16 @@ geneUniverse <- names(geneID2GO)
 message("Number of genes with GO annotation: ", length(geneUniverse))
 
 files <- c(
+  # Added 2024-08-21
+  "by-group/wild_mangrove_vs_wild_reef_p0.05.txt",
+  "by-group/reef_reef_vs_wild_reef_p0.05.txt",
+  "by-group/reef_reef_vs_wild_mangrove_p0.05.txt",
+  "by-group/mangrove_reef_vs_wild_reef_p0.05.txt",
+  "by-group/mangrove_reef_vs_wild_mangrove_p0.05.txt",
+  "by-group/mangrove_reef_vs_reef_reef_p0.05.txt",
+  "by-temperature/36_vs_33_p0.05.txt",
+  "by-temperature/36_vs_30_p0.05.txt",
+  "by-temperature/33_vs_30_p0.05.txt",
   "30_mangrove_reef_vs_reef_reef_p0.05.txt",
   "30_mangrove_reef_vs_wild_mangrove_p0.05.txt",
   "30_mangrove_reef_vs_wild_reef_p0.05.txt",
