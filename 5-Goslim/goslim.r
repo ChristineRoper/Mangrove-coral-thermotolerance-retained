@@ -8,11 +8,15 @@ library(tibble)
 library(GSEABase)
 library(ggplot2)
 
-slim <- getOBOCollection("5-Goslim/goslim_generic.obo")
-slim_ids <- GSEABase::ids(slim)
+setwd("~/Documents/PhD/Chapter 4/FINAL DATA AND CODE/RNA Seq")
 
-# The oposite of goSlim - given slim, find genes
-goFat <- function(slim, genes, GO_ontology) {
+# Load the GO Slim file
+slim <- getOBOCollection("5-Goslim/goslim_generic.obo")
+slim_ids <- GSEABase::ids(slim) # gets slim IDs
+
+# The oposite of GOSlim - given slim, this function finds the genes
+# Based on the GOSlim function, reverse engineer the process to give us the genes
+goWide <- function(slim, genes, GO_ontology) {
     GOTERM <- getAnnMap("TERM", "GO")
     terms <- mget(slim_ids, GOTERM, ifnotfound = NA)
     terms <- terms[vapply(terms, Ontology, character(1)) == GO_ontology]
@@ -39,17 +43,16 @@ goFat <- function(slim, genes, GO_ontology) {
 }
 
 files <- c(
-    "36_mangrove_reef_vs_reef_reef_p0.05.txt",
-    "36_mangrove_reef_vs_wild_mangrove_p0.05.txt",
-    "36_mangrove_reef_vs_wild_reef_p0.05.txt",
-    "36_reef_reef_vs_wild_mangrove_p0.05.txt",
-    "36_reef_reef_vs_wild_reef_p0.05.txt",
-    "36_wild_mangrove_vs_wild_reef_p0.05.txt",
-    "mangrove_reef_30_vs_36_p0.05.txt",
-    "reef_reef_30_vs_36_p0.05.txt",
-    "wild_mangrove_30_vs_36_p0.05.txt",
-    "wild_reef_30_vs_36_p0.05.txt",
-    # Added 2024-08-21
+    "group-by-temperature/36_mangrove_reef_vs_reef_reef_p0.05.txt",
+    "group-by-temperature/36_mangrove_reef_vs_wild_mangrove_p0.05.txt",
+    "group-by-temperature/36_mangrove_reef_vs_wild_reef_p0.05.txt",
+    "group-by-temperature/36_reef_reef_vs_wild_mangrove_p0.05.txt",
+    "group-by-temperature/36_reef_reef_vs_wild_reef_p0.05.txt",
+    "group-by-temperature/36_wild_mangrove_vs_wild_reef_p0.05.txt",
+    "group-by-temperature/mangrove_reef_30_vs_36_p0.05.txt",
+    "group-by-temperature/reef_reef_30_vs_36_p0.05.txt",
+    "group-by-temperature/wild_mangrove_30_vs_36_p0.05.txt",
+    "group-by-temperature/wild_reef_30_vs_36_p0.05.txt",
     "by-group/wild_mangrove_vs_wild_reef_p0.05.txt",
     "by-group/reef_reef_vs_wild_reef_p0.05.txt",
     "by-group/reef_reef_vs_wild_mangrove_p0.05.txt",
@@ -62,34 +65,30 @@ files <- c(
 )
 
 for (direction in c("up", "down")) {
-    functions <- read_tsv(paste0("4-Functional_annotation/out/combined_", direction, ".tsv"))
+    functional_annotations <- read_tsv(paste0("4-Functional_annotation/output/combined_", direction, ".tsv")) # read summary tsv created in the previous step (either up or down direction)
 
-
-    # output <- NULL
     for (current_file in files) {
-        message(current_file)
+        message(direction, ' ', current_file) # tells you the file name
 
-        GO_IDs <- filter(functions, file == current_file, regulation == direction)$GO.ID
-        print(GO_IDs)
-        collection <- GOCollection(GO_IDs)
+        GO_IDs <- filter(functional_annotations, file == current_file, regulation == direction)$GO.ID # filtering the combined functional annotation files to get the GO ID's for only the comparisons we're interested in
+        collection <- GOCollection(GO_IDs) # making a collection required for GOSlim
 
         for (ontology in c("MF", "BP", "CC")) {
             message(ontology)
 
+            # run GoSlim
             results <- goSlim(collection, slim, ontology) %>%
                 rownames_to_column("GO") %>%
+                # add these three columns
                 mutate(
                     File = current_file,
                     direction = direction,
                     Ontology = ontology
                 ) %>%
                 rowwise() %>%
-                mutate(genes = paste(goFat(GO, GO_IDs, ontology), collapse = ", "))
-            # output <- rbind(output, results)
-            results %>%
+                mutate(GOTerms = paste(goWide(GO, GO_IDs, ontology), collapse = ", ")) %>% # adding new column for the GO terms
                 filter(Count > 0) %>%
-                write_tsv(paste0("5-Goslim/out/", direction, ".tsv"), append = TRUE)
+                write_tsv(paste0("5-Goslim/output/", direction, ".tsv"), append = TRUE)
         }
     }
-
 }

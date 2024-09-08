@@ -5,7 +5,7 @@ library(dplyr)
 library(tidyr)
 library(tibble)
 
-setwd("~/Documents/PhD/Chapter 4/Data/R analysis/RNA-seq/P. acuta new genome")
+setwd("~/Documents/PhD/Chapter 4/FINAL DATA AND CODE/RNA Seq")
 
 ############### Overview of gene expression using DESeq2 ###################
 
@@ -34,7 +34,7 @@ metadata <- read_csv("metadata.csv") %>%
 #######
 
 # input HTSeq gene count matrix
-countData <- as.matrix(read.csv("1-Process-HTSeq/out/HTSeqCounts.csv", row.names = "Gene"))
+countData <- as.matrix(read.csv("1-Process-HTSeq/output/HTSeqCounts.csv", row.names = "Gene"))
 
 # check names match in files
 all(metadata$Identifier %in% colnames(countData))

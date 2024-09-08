@@ -1,5 +1,5 @@
 .DS_Store
-**/out
+**/output
 **/plots
 1-Process-HTSeq/HTSeq_data
 reference genome
