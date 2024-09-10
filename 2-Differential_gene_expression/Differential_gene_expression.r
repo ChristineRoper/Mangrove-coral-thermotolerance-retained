@@ -33,8 +33,7 @@ res <- results(dds)
 output <- rbind(output, data.frame(
   by = "Temperature",
   notallzero = sum(res$baseMean > 0),
-  up = sum(res$padj < alpha & res$log2FoldChange > threshold, na.rm = TRUE), # if the log2FoldChange is > 0 it's upregulated, if its < 0 it's downregulated
-  down = sum(res$padj < alpha & res$log2FoldChange < threshold, na.rm = TRUE),
+  count = sum(res$padj < alpha, na.rm = TRUE),
   filt = sum(!is.na(res$pvalue) & is.na(res$padj)),
   outlier = sum(res$baseMean > 0 & is.na(res$pvalue))
 ))
@@ -54,8 +53,7 @@ res <- results(dds)
 output <- rbind(output, data.frame(
   by = "Group",
   notallzero = sum(res$baseMean > 0),
-  up = sum(res$padj < alpha & res$log2FoldChange > threshold, na.rm = TRUE),
-  down = sum(res$padj < alpha & res$log2FoldChange < threshold, na.rm = TRUE),
+  count = sum(res$padj < alpha, na.rm = TRUE),
   filt = sum(!is.na(res$pvalue) & is.na(res$padj)),
   outlier = sum(res$baseMean > 0 & is.na(res$pvalue))
 ))
@@ -75,8 +73,7 @@ res <- results(dds)
 output <- rbind(output, data.frame(
   by = "Interaction",
   notallzero = sum(res$baseMean > 0),
-  up = sum(res$padj < alpha & res$log2FoldChange > threshold, na.rm = TRUE),
-  down = sum(res$padj < alpha & res$log2FoldChange < threshold, na.rm = TRUE),
+  count = sum(res$padj < alpha, na.rm = TRUE),
   filt = sum(!is.na(res$pvalue) & is.na(res$padj)),
   outlier = sum(res$baseMean > 0 & is.na(res$pvalue))
 ))
@@ -325,9 +322,9 @@ ggsave("2-Differential_gene_expression/plots/updown_plot_by_temp.png", width = 8
 
 p <- read.csv("2-Differential_gene_expression/output/Summary_LRT.csv") %>% # uses csv saved during LRT (not pairwise analysis)
   ggplot(aes(x = by)) +
-  geom_bar(aes(weight = up+down), fill = "#595959", col = "#000000", lwd = 0.2) +
+  geom_bar(aes(weight = count), fill = "#595959", col = "#000000", lwd = 0.2) +
   scale_x_discrete(limits = c("Temperature", "Group", "Interaction")) +
   labs(x = "", y = "Count", fill = "Group") +
   christineTheme
-ggsave("2-Differential_gene_expression/plots/updown_plot_temp_group_interaction2.png", width = 3, height = 4)
+ggsave("2-Differential_gene_expression/plots/temp_group_interaction.png", width = 3, height = 4)
 
