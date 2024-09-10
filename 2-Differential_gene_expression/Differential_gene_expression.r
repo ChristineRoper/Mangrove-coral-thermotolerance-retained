@@ -325,11 +325,9 @@ ggsave("2-Differential_gene_expression/plots/updown_plot_by_temp.png", width = 8
 
 p <- read.csv("2-Differential_gene_expression/output/Summary_LRT.csv") %>% # uses csv saved during LRT (not pairwise analysis)
   ggplot(aes(x = by)) +
-  geom_bar(aes(weight = up), fill = "#595959", col = "#000000", lwd = 0.2) +
-  geom_bar(aes(weight = -down), fill = "#D7D7D7", col = "#000000", lwd = 0.2) +
-  # theme(axis.text.x = element_text(angle = 45, hjust = 1)) + +
+  geom_bar(aes(weight = up+down), fill = "#595959", col = "#000000", lwd = 0.2) +
   scale_x_discrete(limits = c("Temperature", "Group", "Interaction")) +
   labs(x = "", y = "Count", fill = "Group") +
   christineTheme
-ggsave("2-Differential_gene_expression/plots/updown_plot_temp_group_interaction.png", width = 3, height = 4)
+ggsave("2-Differential_gene_expression/plots/updown_plot_temp_group_interaction2.png", width = 3, height = 4)
 
