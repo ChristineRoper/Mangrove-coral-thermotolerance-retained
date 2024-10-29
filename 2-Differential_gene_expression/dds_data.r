@@ -18,6 +18,8 @@ metadata <- read_csv("metadata.csv") %>%
   mutate(Moved = Origin != "wild", Origin = ifelse(Origin == "wild", Destination, Origin)) %>%
   # Make a TempGroup column
   tidyr::unite(TempGroup, Temperature, Group, remove = FALSE) %>%
+  # Make a TempOrigin column
+  tidyr::unite(TempOrigin, Temperature, Origin, remove = FALSE) %>%
   # make factors
   mutate(
     Identifier = factor(Identifier),
@@ -25,6 +27,7 @@ metadata <- read_csv("metadata.csv") %>%
     Temperature = factor(Temperature),
     Group = factor(Group),
     TempGroup = factor(TempGroup),
+    TempOrigin = factor(TempOrigin),
     SampleID = factor(SampleID),
     Origin = factor(Origin),
     Destination = factor(Destination)
