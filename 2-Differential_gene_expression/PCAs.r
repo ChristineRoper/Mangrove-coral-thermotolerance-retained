@@ -1,5 +1,6 @@
 library(DESeq2)
 library(ggplot2)
+source("../christineTheme.r")
 
 setwd("~/Documents/PhD/Chapter 4/FINAL DATA AND CODE/RNA Seq")
 
@@ -22,8 +23,8 @@ percentVar <- round(100 * attr(pca_data, "percentVar"))
 
 # creates plot
 ggplot(pca_data, (aes(x = PC1, y = -PC2))) +
-  geom_point(aes(shape = Temperature, col = Group), size = 3) +
-  theme_classic() +
+  stat_ellipse(geom = "polygon", level=0.8, aes(col = Group, fill = after_scale(alpha(colour, 0.2))), lwd=0) +
+  geom_point(aes(shape = Temperature, col = Group, group = Group), size = 3) +
   scale_color_discrete(labels = c(
     "mangrove_reef" = "mangrove-reef",
     "reef_reef" = "reef-reef",
@@ -41,8 +42,9 @@ ggplot(pca_data, (aes(x = PC1, y = -PC2))) +
   theme(axis.title = element_text(size = 20)) +
   theme(legend.title = element_text(size = 20)) +
   theme(text = element_text(size = 20)) +
-  theme(aspect.ratio = 1) +
+  theme(aspect.ratio = 1) + 
+  theme(legend.key=element_blank()) +
   christineTheme
 
 # save plot
-ggsave("2-Differential_gene_expression/plots/PCA_TempGroup.png", dpi = 300, width = 9, height = 6)
+ggsave("2-Differential_gene_expression/plots/PCA_TempGroupEllipse.png", dpi = 300, width = 9, height = 6)
