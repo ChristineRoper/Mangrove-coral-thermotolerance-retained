@@ -1,6 +1,6 @@
 .DS_Store
 **/output
 **/plots
-1-Process-HTSeq/HTSeq_data
-reference genome
-5-Goslim/goslim_generic.obo
+RNA Seq/1-Process-HTSeq/HTSeq_data
+RNA Seq/reference genome
+RNA Seq/5-Goslim/goslim_generic.obo

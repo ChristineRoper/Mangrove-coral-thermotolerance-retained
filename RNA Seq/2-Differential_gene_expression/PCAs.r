@@ -1,6 +1,6 @@
 library(DESeq2)
 library(ggplot2)
-source("../christineTheme.r")
+source("../plotTheme.r")
 
 setwd("~/Documents/PhD/Chapter 4/FINAL DATA AND CODE/RNA Seq")
 
@@ -44,7 +44,7 @@ ggplot(pca_data, (aes(x = PC1, y = -PC2))) +
   theme(text = element_text(size = 20)) +
   theme(aspect.ratio = 1) + 
   theme(legend.key=element_blank()) +
-  christineTheme
+  plotTheme
 
 # save plot
 ggsave("2-Differential_gene_expression/plots/PCA_TempGroupEllipse.png", dpi = 300, width = 9, height = 6)

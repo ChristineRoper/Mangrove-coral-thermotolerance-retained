@@ -2,7 +2,7 @@ setwd("~/Documents/PhD/Chapter 4/FINAL DATA AND CODE/RNA Seq")
 
 library(DESeq2)
 library(ggplot2)
-source("../christineTheme.r")
+source("../plotTheme.r")
 
 # unload and reload dplyr.
 # Because the global environment is shared in R, and libraries overwrite things, something keeps replacing dplyr functions with
@@ -316,7 +316,7 @@ p <- plotData %>%
     "wild to mangrove vs wild to reef" = "wild mangrove vs wild reef"
   )) +
   labs(x = "Temperature (ºC)", y = "Count", fill = "Group") +
-  christineTheme
+  plotTheme
 ggsave("2-Differential_gene_expression/plots/updown_plot_by_temp.png", width = 8, height = 4)
 
 
@@ -325,6 +325,6 @@ p <- read.csv("2-Differential_gene_expression/output/Summary_LRT.csv") %>% # use
   geom_bar(aes(weight = count), fill = "#595959", col = "#000000", lwd = 0.2) +
   scale_x_discrete(limits = c("Temperature", "Group", "Interaction")) +
   labs(x = "", y = "Count", fill = "Group") +
-  christineTheme
+  plotTheme
 ggsave("2-Differential_gene_expression/plots/temp_group_interaction.png", width = 3, height = 4)
 
