@@ -1,4 +1,4 @@
-setwd("~/Documents/PhD/Chapter 4/FINAL DATA AND CODE/RNA Seq")
+setwd("RNA Seq")
 
 library(DESeq2)
 library(ggplot2)

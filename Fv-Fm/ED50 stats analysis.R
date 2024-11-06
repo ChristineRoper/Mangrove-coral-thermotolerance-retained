@@ -9,7 +9,7 @@ library(ARTool)
 # input: ED50.csv
 # output: provides stats results, but not output to files
 
-setwd("~/Documents/PhD/Chapter 4/FINAL DATA AND CODE/Fv-Fm")
+setwd("Fv-Fm")
 
 #### read csv ####
 ED50_data <- read_csv("ED50.csv") %>% 

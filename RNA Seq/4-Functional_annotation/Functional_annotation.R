@@ -9,7 +9,7 @@ library("dplyr")
 library(stringr)
 library(readr)
 
-setwd("~/Documents/PhD/Chapter 4/FINAL DATA AND CODE/RNA Seq")
+setwd("RNA Seq")
 
 ############### GO enrichment using topGO ###################
 

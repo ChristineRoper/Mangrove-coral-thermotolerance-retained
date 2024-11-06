@@ -7,7 +7,7 @@ library(tidyr)
 # ensure 'select' is the function from the dplyr package
 select <- dplyr::select
 
-setwd("~/Documents/PhD/Chapter 4/FINAL DATA AND CODE/RNA Seq")
+setwd("RNA Seq")
 
 
 # Read the weighted fisher results from functional annotation

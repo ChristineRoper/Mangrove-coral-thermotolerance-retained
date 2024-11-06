@@ -8,7 +8,7 @@ library(tibble)
 library(GSEABase)
 library(ggplot2)
 
-setwd("~/Documents/PhD/Chapter 4/FINAL DATA AND CODE/RNA Seq")
+setwd("RNA Seq")
 
 # Load the GO Slim file
 slim <- getOBOCollection("5-Goslim/goslim_generic.obo")

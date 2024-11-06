@@ -10,7 +10,7 @@ options(readr.show_col_types = FALSE)
 AEST <- "Australia/Brisbane"
 
 
-aims_data <- read_csv("~/Documents/PhD/Chapter 4/Data/R analysis/Environmental data/Low Isles LOWFL1 Water Temperature @1.0m from 2021-01-01 to 2023-09-06.csv") %>%
+aims_data <- read_csv("Environmental data/Low Isles LOWFL1 Water Temperature @1.0m from 2021-01-01 to 2023-09-06.csv") %>%
     mutate(
         # Parse date
         timestamp = as.POSIXct(time, format = "%Y-%m-%d %H:%M:%S"),
@@ -81,7 +81,7 @@ plot <- hourly %>%
 plot
 
 ggsave(
-    "~/Documents/PhD/Chapter 4/Data/R analysis/Environmental data/plot_grey.png",
+    "Environmental data/plot_grey.png",
     plot,
     width = 8, height = 5
 )

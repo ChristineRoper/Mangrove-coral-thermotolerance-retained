@@ -13,7 +13,7 @@ library(stringr)
 ## Objective: Use the reference genome files to map genes -> transcript ID -> GO name
 
 
-setwd("~/Documents/PhD/Chapter 4/FINAL DATA AND CODE/RNA Seq")
+setwd("RNA Seq")
 
 ## This file tells us which GO names go with which transcript IDs (both in reference genome)
 ## file name: Pocillopora_acuta_HIv2.genes.EggNog_results.txt

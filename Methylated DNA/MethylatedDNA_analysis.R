@@ -3,7 +3,7 @@
 library(car) # For Shapiro test
 library(ARTool) # for ART ANOVA
 
-setwd("~/Documents/PhD/Chapter 4/FINAL DATA AND CODE/Methylated DNA")
+setwd("Methylated DNA")
 
 input <- "MethylatedDNA_raw.csv"
 DNA_data <- read.csv(input, header = TRUE)

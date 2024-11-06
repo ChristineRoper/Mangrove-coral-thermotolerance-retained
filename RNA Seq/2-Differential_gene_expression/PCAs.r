@@ -2,7 +2,7 @@ library(DESeq2)
 library(ggplot2)
 source("../plotTheme.r")
 
-setwd("~/Documents/PhD/Chapter 4/FINAL DATA AND CODE/RNA Seq")
+setwd("RNA Seq")
 
 source("2-Differential_gene_expression/dds_data.r")
 

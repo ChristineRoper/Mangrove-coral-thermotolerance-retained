@@ -5,7 +5,7 @@ library(dplyr)
 library(tidyr)
 library(tibble)
 
-setwd("~/Documents/PhD/Chapter 4/FINAL DATA AND CODE/RNA Seq")
+setwd("RNA Seq")
 
 ############### Overview of gene expression using DESeq2 ###################
 

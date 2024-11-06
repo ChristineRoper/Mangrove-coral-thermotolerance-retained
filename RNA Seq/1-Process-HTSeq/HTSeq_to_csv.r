@@ -7,7 +7,7 @@ library(tidyr)
 # input: metadata.csv and raw HTSeq_data 
 # output: HTSeqCounts.csv and HTSeqDiagnostics.csv
 
-setwd("~/Documents/PhD/Chapter 4/FINAL DATA AND CODE/RNA Seq")
+setwd("RNA Seq")
 
 # Read metadata
 metadata <- read_csv("metadata.csv") %>%
