@@ -24,7 +24,7 @@ logger_data <- read_csv("Temp Feb 22 - Feb 23 Low Isles/2022-2023 Mangrove HOBO_
     select(timestamp, temperature, pH, site)
 
 # 2022 Mangrove 2nd logger
-logger_data <- read_csv("Temp Feb 22 - Feb 23 Low Isles/2022 Mangrove 2nd logger.csv") %>%
+logger_data <- read_csv("Temp Feb 22 - Feb 23 Low Isles/2022-2023 Mangrove2 HOBO_Temp_pH.csv") %>%
     mutate(
         # Parse date
         timestamp = as.POSIXct(Date_Time, format = "%d/%m/%Y %H:%M", tz = AEST),
@@ -52,7 +52,7 @@ logger_data <- read_csv("Temp Feb 22 - Feb 23 Low Isles/2022-2023 Reef HOBO_Temp
     bind_rows(logger_data)
 
 # 2022-2023 Reef 2nd logger
-logger_data <- read_csv("Temp Feb 22 - Feb 23 Low Isles/Reef_1.csv", skip = 1, name_repair = "universal") %>%
+logger_data <- read_csv("Temp Feb 22 - Feb 23 Low Isles/2022-2023 Reef2 HOBO_Temp_pH.csv", skip = 1, name_repair = "universal") %>%
     mutate(
         # Parse date
         timestamp = as.POSIXct(Date.Time..GMT.11.00, format = "%d/%m/%Y %H:%M", tz = AEST),
