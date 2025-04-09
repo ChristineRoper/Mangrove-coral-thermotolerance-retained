@@ -1,0 +1,412 @@
+# Install
+```{r}
+## One-time install
+install.packages("dartR")
+install.packages("BiocManager")
+install.packages("devtools")
+BiocManager::install(c("SNPRelate", "qvalue"))
+gl.install.vanilla.dartR()
+```
+
+# Import and check genlight object
+```{r}
+# import data
+library(dartR)
+
+gl <- gl.read.dart(
+  filename = "Report_DPoc22-7677_SNP_2.csv",
+  ind.metafile = "ind_metrics.csv" # csv file which contains metrics associated with each individual (id, pop, sex, etc.)
+)
+
+# filter out individuals we are not using
+# gl <- gl.drop.ind(gl, ind.list = c("89", "146", "139", "140", "102", "142"))
+
+# to check genlight object is compliant
+gl <- gl.compliance.check(gl)
+
+# save(gl, file="gl_dartR.rdata")
+```
+
+```{r}
+# some useful commands to get data from your genlight object
+
+nLoc(gl) # number of loci
+
+locNames(gl) # list of loci
+
+nInd(gl) # number of individuals (specimens / samples)
+
+indNames(gl) # list of individuals
+
+nPop(gl) # number of populations
+
+popNames(gl) # list of populations
+
+pop(gl) # list of population assignments for each individual
+
+as.matrix(gl) # generate a matrix of the SNP scores, with 0 as homozygous reference, 2 as homozygous alternate, and 1 as heterozygous.
+
+glPlot(gl) # a smear plot of individual against locus, useful for gross pattern identification and assessment of allelic dropout
+```
+
+# Filtering data
+```{r}
+## 1. FILTER SECONDARIES
+# gl.report.secondaries(gl_f) # report
+gl_f <- gl.filter.secondaries(gl, verbose = 3) # this is standard, no threshold set
+
+## 2. FILTER REPRODUCIBILITY
+# gl.report.reproducibility(gl_f) # report
+gl_f <- gl.filter.reproducibility(gl_f, threshold = 0.99, verbose = 3) # filtering threshold 0.99
+
+## 3. FILTER CALL RATE BY LOCI
+# gl.report.callrate(gl_f, method = "loc") # report
+gl_f <- gl.filter.callrate(gl_f, method = "loc", threshold = 0.60, verbose = 3) # filtering
+# Note: this has been changed to 0.6 due to significant loss of data at higher thresholds
+
+## 4. FILTER CALL RATE BY INDIVIDUALS
+# gl.report.callrate(gl_f, method = "ind") # report
+gl_f <- gl.filter.callrate(gl_f, method = "ind", threshold = 0.80, verbose = 3) # filtering
+
+## 5. FILTER READ DEPTH TO REMOVE LOW COVERAGE LOCI
+# gl.report.rdepth(gl_f) # report
+gl_f <- gl.filter.rdepth(gl_f, lower = 5, upper = 85, verbose = 3) # filtering
+# selecting a threshold of 10% either side (data between the 10th and 90th percentile was kept)
+
+## 6. FILTER MONOMORPHIC LOCI
+# gl.report.monomorphs(gl_f) # report
+gl_f <- gl.filter.monomorphs(gl_f, verbose = 3) # filtering
+# Filtered prior to MAF as it was generating a warning about monomorphoc loci
+
+## 7. FILTER Minor Allele Frequencies (MAF)
+# gl.report.maf(gl_f) # report
+gl_f <- gl.filter.maf(gl_f, threshold = 0.01, verbose = 3) # filtering
+
+# filtering complete.
+
+gl_f <- gl.recalc.metrics(gl_f) # re-calculate locus metadata now that filtering is complete
+```
+
+
+# Test for clones - none under the threshold 0.45
+```{r}
+# 80% & 70% loci coverage
+gl_grm <- gl.grm(gl_f, verbose = 3)
+
+# This function calculates the mean probability of identity by state (IBS) across loci that would result from all the possible crosses of the individuals analyzed.
+# IBD is calculated by an additive relationship matrix approach developed by Endelman and Jannink (2012)
+
+# Represents a genomic relationship matrix (GRM) as a network
+gl_grm_net <- gl.grm.network(gl_grm, gl_f, method = "mds", link.size = 2, relatedness_factor = 0.45) # decided on value between sibling/half sibling
+```
+
+# Impute missing data using the nearest neighbour function - needed for some downstream analyses (e.g. Fst)
+```{r}
+gl_f2 <- gl.impute(gl_f, method = "neighbour", verbose = 5)
+# re-calculating the locus metrics after manipulation
+gl_f2 <- gl.recalc.metrics(gl_f2)
+
+# 2244 / (nInd(gl_f) * nLoc(gl_f)) # Percentage imputed
+```
+
+# Check for Symbiodiniaceae contamination - no symbiont sequences aligned with filtered data indicating no contamination
+```{r}
+# Download Symbiodiniaceae genomes here: sampgr.org.cn/index.php/download
+# Download & install BLAST (needed to run analysis) https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/
+# select this file: ncbi-blast-2.14.1+.dmg
+# Run the BLAST function for each genome
+gl.blast(gl_f, "Symbiontgenomes/symC_scaffold_40.fasta", verbose = 5)
+gl.blast(gl_f, "Symbiontgenomes/Symbiodinium_microadriacticum_genome.scaffold.fasta", verbose = 5)
+gl.blast(gl_f, "Symbiontgenomes/symA3_scaffold_37.fasta", verbose = 5)
+gl.blast(gl_f, "Symbiontgenomes/Fugacium_kawagutii_V3_genome_scaffold.fasta", verbose = 5)
+gl.blast(gl_f, "Symbiontgenomes/Fugacium_kawagutii_V2_genome_Scaffolds.fasta", verbose = 5)
+gl.blast(gl_f, "Symbiontgenomes/Fugacium_kawagutii_V1_genome_scaffold.fasta", verbose = 5)
+gl.blast(gl_f, "Symbiontgenomes/Cladocopium_goreaui_Genome.Scaffolds.fasta", verbose = 5)
+gl.blast(gl_f, "Symbiontgenomes/Breviolum_minutum.v1.0.genome.fa", verbose = 5)
+```
+
+
+#PCA
+```{r}
+library(adegenet)
+source("../default_theme.r")
+
+pca_data <- gl_f
+
+# levels(pca_data$pop) = c(
+#   "L1 Flat", "L1 Pale" ,"L2 Slope", "Low Isles slope pale",
+#   "L2 Flat", "O2 Crest", "O2 Slope", "O3 Flat", "O3 Slope" ,
+#   "T1 Slope", "T2 Slope", "O1 Slope"
+# )
+
+pca_data <- gl.rename.pop(pca_data, old = "Low Isles flat", new = "L1 Flat")
+pca_data <- gl.rename.pop(pca_data, old = "Low Isles flat pale", new = "L1 Pale")
+pca_data <- gl.rename.pop(pca_data, old = "Low Isles Woody flat", new = "L2 Flat")
+pca_data <- gl.rename.pop(pca_data, old = "Low Isles slope", new = "L2 Slope")
+pca_data <- gl.rename.pop(pca_data, old = "Tongue Turtle Bay", new = "T2 Slope")
+pca_data <- gl.rename.pop(pca_data, old = "Tongue Blue Hole", new = "T1 Slope")
+pca_data <- gl.rename.pop(pca_data, old = "Opal Long Bommie", new = "O1 Slope")
+pca_data <- gl.rename.pop(pca_data, old = "Opal Mojo flat", new = "O2 Crest")
+pca_data <- gl.rename.pop(pca_data, old = "Opal Mojo slope", new = "O2 Slope")
+pca_data <- gl.rename.pop(pca_data, old = "Opal Rayban flat", new = "O3 Flat")
+pca_data <- gl.rename.pop(pca_data, old = "Opal Rayban slope", new = "O3 Slope")
+
+pcoa <- gl.pcoa(pca_data, verbose = 3)
+
+# gl.pcoa.plot won't return the plot for us to work with
+# We can tell it to save it in a temporary directory though
+gl.pcoa.plot(pcoa, pca_data, pop.labels = "pop", ellipse = FALSE, save2tmp = TRUE)
+# Now we need to get the list of repots it has saved and find the last plot
+gl.list.reports()
+# put the number of that plot here so we can finally get the plot and work with it
+plot <- gl.print.reports(5)
+
+# Remove the horizontal and vertical lines
+plot$layers[[4]] <- NULL
+plot$layers[[3]] <- NULL
+
+# output the plot
+plot +
+  # stat_ellipse(type = "norm", level = 0.95) +
+  xlim(-5, 10) + ylim(-10, 10) +
+  default_theme
+
+ggsave("Genetic Analysis/plots/pca.png", width = 6, height = 5)
+# ggsave("Genetic Analysis/plots/pca_longbommie.png", width = 6, height = 5)
+
+
+###### To find out which samples are outliers ###### - this only needs to be run once
+
+# Similar to how we get the plot, the results must be found by running gl.list.reports() and finding the latest Table number
+pca_results <- gl.print.reports(16)
+
+# Load the metadata so we can get Sample IDs
+metadata <- read_csv("Genetic Analysis/ind_metrics_site.csv") %>%
+  # Create a `ind` column to match the PCA output
+  mutate(ind = as.character(id))
+
+
+outliers <- pca_results %>%
+  # Join the metadata so we can get Sample IDs
+  left_join(metadata, "ind") %>%
+  # We can see from the plot there are some outliers above PC2 = 4 and below PC2 = -4
+  filter(PCoAy > 4 | PCoAy < -4)
+```
+
+# STRUCTURE analysis 
+```{r}
+library(stringr) # for str_trunc
+
+# gl.run.structure takes a genlight object and runs structureRun (https://rdrr.io/cran/dartR/man/gl.run.structure.html)
+#     ↓↓
+# structureRun expects a gtypes object in R and runs STRUCTURE from inside R (https://rdrr.io/cran/strataG/man/structure.html)
+#     ↓↓
+# STRUCTURE is a program external to R
+# The program: ./STRUCTURE/structure
+# Documentation: https://web.stanford.edu/group/pritchardlab/structure_software/release_versions/v2.3.4/structure_doc.pdf
+
+# For this function to work, make sure that individual and population names have no spaces.
+# make a copy od the data to make changes to
+gl_for_structure <- gl_f
+
+# gl.run.structure below works but R has no way to capture stdout from it and
+# there's a lot of output so it overflows the terminal and we can't ever get it
+# The solution is to output gl_for_structure to file, and run gl.run.structure
+# in another R session piping the output to a file
+save(gl_for_structure, file = "gl_for_structure.RData")
+# now run `Rscript structure_run.r > outputs/structure_output.txt` in terminal
+# Now we load the results of gl.run.structure from structure_run.r
+load("structure_run.RData") # loads a variable called sr
+
+# This is the code that's now run inside structure_run.r
+# sr <- gl.run.structure(
+#   gl_for_structure,
+#   burnin = 10000,
+#   numreps = 10000,
+#   save2tmp = TRUE,
+
+#   # Documentation of options here: https://rdrr.io/cran/strataG/man/structure.html#heading-2
+#   k.range = 1:10,
+#   num.k.rep = 5, # number of replicates for each value in k.range.
+
+#   # The location of the external STRUCUTRE program to run
+#   exec = "./STRUCTURE/structure"
+# )
+
+# Calculate Evanno metrics
+ev <- gl.evanno(sr)
+ev
+# Creates Evanno plots
+evanno_plots <- gl.evanno(sr)
+
+source("../.r")
+
+# delta.k
+evanno_plots$plots$delta.k + default_theme
+ggsave("Genetic Analysis/plots/evanno_delta_k.png")
+
+# ln.pk
+evanno_plots$plots$ln.pk + default_theme
+ggsave("Genetic Analysis/plots/evanno_ln_pk.png")
+
+# ln.ppk
+evanno_plots$plots$ln.ppk + default_theme
+ggsave("Genetic Analysis/plots/evanno_ln_ppk.png")
+
+# mean.ln.k
+evanno_plots$plots$mean.ln.k + default_theme
+ggsave("Genetic Analysis/plots/evanno_mean_ln_k.png")
+```
+
+# AMOVA
+```{r}
+# gl.amova(gl_f)
+
+library(poppr)
+
+# Converting genlight to genind
+gen_ind <- gl2gi(gl_f)
+# Assign pop information to strata
+strata(gen_ind) <- data.frame(pop = pop(gen_ind))
+# Performing AMOVA
+amova <- poppr.amova(gen_ind, ~pop, nperm = 1000, within = TRUE)
+amova
+
+# Test for significance
+amova_sig <- randtest(amova, nrepet = 999)
+plot(amova_sig)
+amova_sig
+```
+
+# ADMIXUTRE analysis
+```{r}
+# Converting genlight to PLINK format
+gl2plink(gl_f, plink_path = "./PLINK", bed_file = TRUE, verbose = 5, outpath = "./PLINK")
+# The file "PLINK/gl_plink.bed" has been created and exported out of R for use in shell
+# Note PLINK folder moved up one level in folders as it does not like spaces in file names
+
+# create ind2pop.txt needed for pong
+ind2pop <- pop(gl_f) # Get population names for each individual
+levels(ind2pop) <- gsub(" ", "", levels(ind2pop)) # Remove spaces from factor levels
+write.table(ind2pop, "Genetic Analysis/outputs/ind2pop.txt", row.names = FALSE, col.names = FALSE, quote = FALSE)
+# The file "ind2pop.txt" has been created and exported out of R for use in shell
+# Saved to outputs folder in Genetic Analysis - not saved in PLINK folder
+
+# In terminal run admixture using the exported files from above - https://speciationgenomics.github.io/ADMIXTURE/
+# Use ADMIXTURE/ADMIXTURE.sh to run ADMIXTURE and pong (plots)
+```
+
+
+# Genetic distance matrix between populations
+```{r}
+# Genetic distance between two individuals or populations is a measure of their genetic dissimilarity. large value = very dissimilar, small value = similar, 0 = identical genetic profiles
+# gl.dist.ind() or gl.dist.pop()
+# Note: Method = “euclidean” is severely affected by missing values and should be used only for complete data. Therefore, use "gl_f2" which has filled in any missing data via the nearest neighbour function
+
+Dist_pop <- gl.dist.pop(gl_f2, method = "euclidean")
+Dist_pop
+
+# Heat map
+svg("Genetic Analysis/plots/heatmap.svg")
+gl.plot.heatmap(Dist_pop,
+  key = TRUE, keysize = 1.5, key.title = NA, key.ylab = NA,
+  cexRow = 1, cexCol = 1, margins = c(10, 10), srtCol = 45
+)
+dev.off()
+
+# Calculate Fst values
+# Fst is a measure of population differentiation due to genetic structure. An Fst value greater than 0.15 can be considered as significant in differentiating populations (Frankham et al., 2002).
+Fst <- gl.fst.pop(gl_f2, nboots = 999) # note: don't need to include nboots if I'm not interested in p-values
+Fst
+
+write.csv(Fst$Fsts, "Genetic Analysis/outputs/Fst.csv")
+write.csv(Fst$Pvalues, "Genetic Analysis/outputs/FstPvalues.csv")
+```
+
+### Fixed difference analysis
+      
+```{r}
+D <- gl.fixed.diff(gl_f, v = 4)
+# Warning: Fixed differences can arise through sampling error if sampling sizes are small
+
+D$fd
+# Note that there are a few comparisons (IM-OM and IR-OR) with zero fixed differences. These are candidates to aggregate on the basis of presenting no diagnostic allelic differences.
+
+# Testing for Significance
+test_results <- gl.fixed.diff(D, test = TRUE, v = 3)
+
+test_results$pval
+
+# NOTE
+# Note continuing from here as there are only 2 populations
+
+# Aggregate
+
+# At this point we might consider aggregating sample sites pairwise where they have not accumulated any fixed differences.
+
+D2 <- gl.collapse(D, tpop = 1, verbose = 3)
+
+# Population with 0 fixed differences are now grouped together. Inner and outer mangrove in Inner mangrove+ and Inner and outer reef in Inner reef+
+
+
+
+D2$fd
+
+# This is as far as the collapsing of the fixed difference matrix can go, with tpop set to 1.
+
+
+
+# Testing for Significance: there is one last issue to consider, the possibility that distinctions between our final aggregations are based on false positives (given the sample/finite sample size). Note that my populations have sample sizes of 22 (mangrove) and 18 (reef).
+
+D4 <- gl.fixed.diff(D2, test = TRUE, v = 3)
+
+D4
+
+# Outcome: Inner mangrove+ vs Inner reef+  [p = 1 ,ns]
+
+# The 2 fixed allelic differences between Inner mangrove+ and Inner reef+ don't exceed the false positive rate, probably given the exceptionally low sample sizes (despite the fact that we grouped them).
+```
+
+
+# Run 'popgen' (snpReady) for genetic characterisation
+```{r}
+library(snpReady)
+
+# Get current populations from gl_f
+populations <- as.matrix(pop(gl_f))
+
+# Run popgen with subgroups equal to my 'populations'
+popgen_output <- popgen(
+  as.matrix(gl_f),
+  subgroups = populations
+)
+
+means <- NULL
+
+for (pop in names(popgen_output$bygroup)) {
+  pop_data <- popgen_output$bygroup[[pop]]
+  print(pop) # prints name of the 'population'
+  # print(pop_data$Genotypes)
+  # print(pop_data$Markers)
+  # print(pop_data$Population)
+  # print(pop_data$Variability)
+
+  # calculate metrics of interest - we are using genetic diversity (GD)
+  means <- rbind(means, data.frame(
+    pop = pop,
+    p = mean(pop_data$Markers$p), # allele frequency (frequency of dominant allele - p)
+    q = mean(pop_data$Markers$q), # allele frequency (frequency of recessive allele - q)
+    MAF = mean(pop_data$Markers$MAF), # minor allele frequency
+    He = mean(pop_data$Markers$He), # observed heterozygosity
+    Ho = mean(pop_data$Markers$Ho), # expected heterozygosity
+    GD = mean(pop_data$Markers$GD), # Nei's genetic diversity
+    PIC = mean(pop_data$Markers$PIC), # polymorphic information count
+    Miss = mean(pop_data$Markers$Miss), # missing rate,
+    n = nrow(pop_data$Genotypes) # gives sample number for each group
+  ))
+}
+
+print(means)
+write.csv(means, "Genetic Analysis/outputs/GeneticDiversity.csv")
+```
+
