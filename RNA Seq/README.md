@@ -1,4 +1,5 @@
 # 1-Process-HTSeq
+* Code for RNA sequence quality control and trimming, as well as extraction of HTSeq count data (abundance of transcripts)
 * Combine `HTSeq` files (*.htseq.out) into one CSV for proccessing
 
 # 2-Differential_gene_expression
